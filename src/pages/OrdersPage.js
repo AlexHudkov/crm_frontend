@@ -7,7 +7,6 @@ import {orderService} from "../services/orderService";
 import {FilterPanel} from "../components/FilterPanel";
 import {useAuth} from "../context/AuthContext";
 import {groupService} from "../services/groupService";
-import {isEqual} from "lodash";
 import {ErrorModal} from "../components/ErrorModal";
 
 const OrdersPage = () => {
@@ -18,13 +17,12 @@ const OrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState([]);
     const [searchParams, setSearchParams] = useSearchParams();
-    const [filters, setFilters] = useState({});
-    const firstRenderRef = useRef(true);
+    const [, setFilters] = useState({});
     const groupsLoaded = useRef(false);
-    const prevFiltersRef = useRef(filters);
     const [modalMessage, setModalMessage] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [onModalClose, setOnModalClose] = useState(null);
+
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
     const ordering = searchParams.get("ordering") || "";
 
@@ -40,6 +38,16 @@ const OrdersPage = () => {
             onModalClose();
             setOnModalClose(null);
         }
+    };
+
+    const cleanParams = (paramsObj) => {
+        const cleaned = {};
+        for (const key in paramsObj) {
+            if (paramsObj[key] !== null && paramsObj[key] !== undefined && paramsObj[key] !== "") {
+                cleaned[key] = paramsObj[key];
+            }
+        }
+        return cleaned;
     };
 
     useEffect(() => {
@@ -68,9 +76,18 @@ const OrdersPage = () => {
         const page = parseInt(searchParams.get("page") || "1", 10);
         const sortOrder = searchParams.get("ordering") || "";
 
+        const newFilters = {};
+        for (const [key, value] of searchParams.entries()) {
+            if (key !== "page" && key !== "ordering") {
+                newFilters[key] = value;
+            }
+        }
+
+        setFilters(newFilters);
+
         setLoading(true);
         try {
-            const response = await orderService.fetchOrders(page, sortOrder, filters);
+            const response = await orderService.fetchOrders(page, sortOrder, newFilters);
             setOrders(response.results);
             setTotalPages(Math.ceil(response.count / 25));
         } catch (error) {
@@ -82,28 +99,41 @@ const OrdersPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchParams, filters, isAuthenticated, navigate]);
+    }, [searchParams, isAuthenticated, navigate]);
 
     useEffect(() => {
         if (!isAuthenticated) return;
         fetchOrders();
     }, [searchParams, isAuthenticated, fetchOrders]);
 
-    useEffect(() => {
-        if (!isAuthenticated || firstRenderRef.current) return;
-
-        if (isEqual(prevFiltersRef.current, filters)) return;
-        prevFiltersRef.current = filters;
-        fetchOrders();
-    }, [filters, fetchOrders, isAuthenticated]);
-
     const handleSorting = (column) => {
         const newOrdering = ordering === column ? `-${column}` : column;
-        setSearchParams({page: currentPage, ordering: newOrdering});
+        const newParams = Object.fromEntries([...searchParams.entries()]);
+        newParams.ordering = newOrdering;
+        newParams.page = "1";
+        setSearchParams(cleanParams(newParams));
     };
 
     const handlePageChange = (newPage) => {
-        setSearchParams({page: newPage, ordering});
+        const newParams = Object.fromEntries([...searchParams.entries()]);
+        newParams.page = newPage.toString();
+        setSearchParams(cleanParams(newParams));
+    };
+
+    const handleFilterChange = (newFilters) => {
+        setFilters(newFilters);
+        const newParams = Object.fromEntries([...searchParams.entries()]);
+
+        Object.keys(newFilters).forEach((key) => {
+            if (newFilters[key]) {
+                newParams[key] = newFilters[key];
+            } else {
+                delete newParams[key];
+            }
+        });
+
+        newParams.page = "1";
+        setSearchParams(cleanParams(newParams));
     };
 
     const handleCommentAdded = (updatedOrder) => {
@@ -117,7 +147,7 @@ const OrdersPage = () => {
     return (
         <Box sx={{padding: 3}}>
             <FilterPanel
-                onFilterChange={setFilters}
+                onFilterChange={handleFilterChange}
                 fetchFilteredData={fetchOrders}
                 groups={groups}
                 exportData={orders}

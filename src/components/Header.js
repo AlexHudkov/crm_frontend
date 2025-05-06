@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {Box, Typography} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faUserCog, faSignOutAlt} from "@fortawesome/free-solid-svg-icons";
+import {authService} from "../services/authService";
 
 
 const Header = () => {
@@ -10,8 +11,8 @@ const Header = () => {
     const navigate = useNavigate();
 
 
-    const handleLogout = () => {
-        localStorage.removeItem("access");
+    const handleLogout = async () => {
+        await authService.logout();
         setCurrentUser(null);
         setIsAuthenticated(false);
         navigate("/login", {replace: true});
