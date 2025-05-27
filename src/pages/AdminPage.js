@@ -6,6 +6,7 @@ import {OrderStatistics} from "../components/OrderStatistics";
 import {ErrorModal} from "../components/ErrorModal";
 import {CreateManagerModal} from "../components/CreateManagerModal";
 import {managerService} from "../services/managerService";
+import {authService} from "../services/authService";
 
 const AdminPage = () => {
     const [managers, setManagers] = useState([]);
@@ -15,6 +16,7 @@ const AdminPage = () => {
     const [modalMessage, setModalMessage] = useState("");
     const [modalType, setModalType] = useState("error");
     const [isModalOpenMsg, setIsModalOpenMsg] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     const showModal = (message, type = "error") => {
         setModalMessage(message);
@@ -43,6 +45,18 @@ const AdminPage = () => {
     useEffect(() => {
         fetchManagers();
         fetchStats();
+
+        const fetchCurrentUser = async () => {
+            try {
+                const user = await authService.getCurrentUser();
+                setCurrentUserId(user.id);
+            } catch (error) {
+                console.error("Failed to fetch current user:", error);
+            }
+        };
+
+        fetchCurrentUser();
+
     }, [fetchManagers, fetchStats]);
 
     const handleCreateClick = () => {
@@ -65,7 +79,12 @@ const AdminPage = () => {
             fetchManagers();
             handleClose();
         } catch (error) {
-            console.error("Failed to create manager:", error);
+            const errorMsg = error.response?.data?.email?.[0];
+            if (errorMsg.includes("already exists")) {
+                showModal("A manager with this email is already exists.");
+            } else {
+                showModal(errorMsg);
+            }
         }
     };
 
@@ -194,6 +213,7 @@ const AdminPage = () => {
                                         variant="outlined"
                                         color={manager.is_active ? "error" : "success"}
                                         onClick={() => handleBanToggle(manager)}
+                                        disabled={manager.id === currentUserId}
                                     >
                                         {manager.is_active ? "BAN" : "UNBAN"}
                                     </Button>
@@ -209,6 +229,7 @@ const AdminPage = () => {
                                         variant="contained"
                                         color="error"
                                         onClick={() => handleDelete(manager)}
+                                        disabled={manager.id === currentUserId}
                                     >
                                         DELETE
                                     </Button>

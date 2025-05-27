@@ -37,10 +37,13 @@ apiService.interceptors.response.use(
     async error => {
         const originalRequest = error.config;
 
-        const is401 = error.response?.status === 401;
         const isRefreshRequest = originalRequest?.url?.includes("/auth/refresh/");
+        const isLoginRequest = originalRequest?.url?.endsWith("/auth/");
 
-        if (is401 && !isRefreshRequest) {
+        const is401 = error.response?.status === 401 && !isRefreshRequest && !isLoginRequest;
+
+        if (is401) {
+
             if (originalRequest._retry) {
                 localStorage.removeItem("access");
                 localStorage.removeItem("refresh");
