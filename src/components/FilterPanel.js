@@ -6,12 +6,12 @@ import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import {enGB} from "date-fns/locale";
 import {useEffect, useRef, useState} from "react";
 import {debounce, isEqual} from "lodash";
-import {saveAs} from "file-saver";
-import * as XLSX from "xlsx";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {FaFileExcel} from "react-icons/fa";
 
-const FilterPanel = ({ onFilterChange, groups, exportData }) => {
+import {exportOrdersToExcel} from "../services/exportService";
+
+const FilterPanel = ({onFilterChange, groups}) => {
     const [filters, setFilters] = useState({
         name: "", surname: "", email: "", phone: "", age: "",
         course: "", course_format: "", course_type: "", status: "",
@@ -63,17 +63,21 @@ const FilterPanel = ({ onFilterChange, groups, exportData }) => {
         });
     };
 
-    const handleExportExcel = () => {
-        if (!exportData || exportData.length === 0) {
-            alert("No data available for export!");
-            return;
-        }
+    const handleExportExcel = async () => {
+        try {
+            const ordering = new URLSearchParams(window.location.search).get("ordering");
+            const blob = await exportOrdersToExcel(filters, ordering);
 
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-        const excelBuffer = XLSX.write(workbook, {bookType: "xlsx", type: "array"});
-        saveAs(new Blob([excelBuffer], {type: "application/octet-stream"}), "orders.xlsx");
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "orders.xlsx";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            alert("Export failed");
+            console.error(error);
+        }
     };
 
     return (
@@ -131,12 +135,14 @@ const FilterPanel = ({ onFilterChange, groups, exportData }) => {
                             label="Start Date"
                             value={filters.start_date ? new Date(filters.start_date) : null}
                             onChange={handleDateChange("start_date")}
+                            format="MM.dd.yyyy"
                             slotProps={{textField: {variant: "outlined"}}}
                         />
                         <DatePicker
                             label="End Date"
                             value={filters.end_date ? new Date(filters.end_date) : null}
                             onChange={handleDateChange("end_date")}
+                            format="MM.dd.yyyy"
                             slotProps={{textField: {variant: "outlined"}}}
                         />
                     </LocalizationProvider>
@@ -160,4 +166,4 @@ const FilterPanel = ({ onFilterChange, groups, exportData }) => {
     );
 };
 
-export { FilterPanel };
+export {FilterPanel};

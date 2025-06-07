@@ -1,15 +1,30 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {
     Modal, Box, Typography, TextField, Button, Select, MenuItem, FormControl
 } from "@mui/material";
 import {groupService} from "../services/groupService";
 
 const EditModal = ({open, onClose, order, onSave, groups, setGroups}) => {
-    const [formData, setFormData] = useState(order);
+    const [formData, setFormData] = useState(null); // <-- Явно null, не undefined
     const [isAddingGroup, setIsAddingGroup] = useState(false);
     const [newGroup, setNewGroup] = useState("");
     const [isGroupAdded, setIsGroupAdded] = useState(false);
 
+    useEffect(() => {
+        if (!order) return;
+
+        const shouldDefaultToInWork =
+            (!order.manager_id) && (order.status === null || order.status === "New");
+
+        setFormData({
+            ...order,
+            status: shouldDefaultToInWork ? "In Work" : order.status || "",
+        });
+    }, [order]);
+
+    if (!formData) {
+        return null;
+    }
 
     const handleChange = (e) => {
         setFormData({...formData, [e.target.name]: e.target.value});

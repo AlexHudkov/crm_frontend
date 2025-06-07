@@ -7,6 +7,8 @@ import {ErrorModal} from "../components/ErrorModal";
 import {CreateManagerModal} from "../components/CreateManagerModal";
 import {managerService} from "../services/managerService";
 import {authService} from "../services/authService";
+import {useNavigate} from "react-router-dom";
+import {useAuth} from "../context/AuthContext";
 
 const AdminPage = () => {
     const [managers, setManagers] = useState([]);
@@ -17,6 +19,8 @@ const AdminPage = () => {
     const [modalType, setModalType] = useState("error");
     const [isModalOpenMsg, setIsModalOpenMsg] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const {currentUser} = useAuth();
+    const navigate = useNavigate();
 
     const showModal = (message, type = "error") => {
         setModalMessage(message);
@@ -43,6 +47,13 @@ const AdminPage = () => {
     }, []);
 
     useEffect(() => {
+        if (!currentUser) return;
+
+        if (currentUser.role !== "admin") {
+            navigate("/orders", {replace: true});
+            return;
+        }
+
         fetchManagers();
         fetchStats();
 
@@ -57,7 +68,11 @@ const AdminPage = () => {
 
         fetchCurrentUser();
 
-    }, [fetchManagers, fetchStats]);
+    }, [currentUser, navigate, fetchManagers, fetchStats]);
+
+    if (!currentUser || currentUser.role !== "admin") {
+        return null;
+    }
 
     const handleCreateClick = () => {
         setIsModalOpen(true);
@@ -80,10 +95,10 @@ const AdminPage = () => {
             handleClose();
         } catch (error) {
             const errorMsg = error.response?.data?.email?.[0];
-            if (errorMsg.includes("already exists")) {
-                showModal("A manager with this email is already exists.");
+            if (errorMsg?.includes("already exists")) {
+                showModal("A manager with this email already exists.");
             } else {
-                showModal(errorMsg);
+                showModal(errorMsg || "Failed to create manager.");
             }
         }
     };
@@ -92,7 +107,6 @@ const AdminPage = () => {
         try {
             const token = await managerService.activate(manager_id);
             const activationLink = `${window.location.origin}/activate/${token}`;
-
             await navigator.clipboard.writeText(activationLink);
             showModal("Activation link copied to clipboard!", "success");
         } catch (error) {
@@ -168,8 +182,16 @@ const AdminPage = () => {
                             <Typography><strong>email:</strong> {manager.email}</Typography>
                             <Typography><strong>name:</strong> {manager.name}</Typography>
                             <Typography><strong>surname:</strong> {manager.surname}</Typography>
-                            <Typography><strong>is_active:</strong> {String(manager.is_active)}</Typography>
-                            <Typography><strong>last_login:</strong> {manager.last_login_formatted || "null"}
+                            <Typography><strong>is active:</strong> {String(manager.is_active)}</Typography>
+                            <Typography>
+                                <strong>last login:</strong>{" "}
+                                {manager.last_login
+                                    ? new Date(manager.last_login).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "short",
+                                        day: "2-digit",
+                                    })
+                                    : "null"}
                             </Typography>
                         </Box>
 

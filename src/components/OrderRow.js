@@ -21,11 +21,18 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
+    const canEdit =
+        currentUser?.role === "admin" ||
+        !order.manager_id ||
+        order.manager_id === currentUser?.id;
+
+
     useEffect(() => {
         setComments(order.comments || []);
     }, [order]);
 
     const handleExpand = () => {
+        if (!canEdit) return;
         setIsExpanded(!isExpanded);
         setSelectedId(order.id === selectedId ? null : order.id);
     };
@@ -50,7 +57,7 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
     };
 
     const handleEditClick = () => {
-        if (!order.manager_name || order.manager_name === currentUser.surname) {
+        if (canEdit) {
             setIsEditModalOpen(true);
         } else {
             alert("You cannot edit this order because it is managed by another user.");
@@ -82,11 +89,19 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
                 <TableCell>{order.course}</TableCell>
                 <TableCell>{order.course_format}</TableCell>
                 <TableCell>{order.course_type}</TableCell>
-                <TableCell>{order.status || "New"}</TableCell>
+                <TableCell>{order.status || "null"}</TableCell>
                 <TableCell>{order.sum}</TableCell>
                 <TableCell>{order.alreadyPaid}</TableCell>
                 <TableCell>{order.group}</TableCell>
-                <TableCell>{new Date(order.created_at).toLocaleString()}</TableCell>
+                <TableCell sx={{fontFamily: "monospace"}}>
+                    {(() => {
+                        const date = new Date(order.created_at);
+                        const day = date.getDate().toString().padStart(2, "0");
+                        const month = date.toLocaleString("en-US", {month: "short"});
+                        const year = date.getFullYear();
+                        return `${month} ${day}, ${year}`;
+                    })()}
+                </TableCell>
                 <TableCell>{order.manager_name || "Not assigned"}</TableCell>
             </TableRow>
 
@@ -128,7 +143,7 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
                                                     <Typography variant="body2" sx={{marginLeft: 2}}>
                                                         <strong>{c.author_name}</strong>: {new Date(c.created_at).toLocaleString()}
                                                     </Typography>
-                                                    {currentUser?.id === c.author_id && (
+                                                    {(currentUser?.id === c.author_id || currentUser?.role === "admin") && (
                                                         <Button
                                                             variant="text"
                                                             color="error"
