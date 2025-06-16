@@ -2,13 +2,24 @@ import {useEffect, useState} from "react";
 import {
     Modal, Box, Typography, TextField, Button, Select, MenuItem, FormControl
 } from "@mui/material";
+
 import {groupService} from "../services/groupService";
+import {
+    validateName,
+    validateSurname,
+    validateEmail,
+    validatePhone,
+    validateAge,
+    validateSum,
+    validateAlreadyPaid
+} from "../utils/validation";
 
 const EditModal = ({open, onClose, order, onSave, groups, setGroups}) => {
-    const [formData, setFormData] = useState(null); // <-- Явно null, не undefined
+    const [formData, setFormData] = useState(null);
     const [isAddingGroup, setIsAddingGroup] = useState(false);
     const [newGroup, setNewGroup] = useState("");
     const [isGroupAdded, setIsGroupAdded] = useState(false);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         if (!order) return;
@@ -54,10 +65,11 @@ const EditModal = ({open, onClose, order, onSave, groups, setGroups}) => {
         setIsGroupAdded(false);
         setNewGroup("");
     };
+    const hasErrors = Object.values(errors).some((error) => error !== "");
 
     return (
         <Modal open={open} onClose={onClose}>
-            <Box sx={{width: 600, margin: "100px auto", padding: 3, backgroundColor: "#fff", borderRadius: "8px"}}>
+            <Box sx={{width: 600, margin: "20px auto", padding: 3, backgroundColor: "#fff", borderRadius: "8px"}}>
                 <Box display="flex" gap={2}>
                     <Box flex={1}>
                         <Typography>Group</Typography>
@@ -136,21 +148,58 @@ const EditModal = ({open, onClose, order, onSave, groups, setGroups}) => {
                             </>
                         )}
 
-                        <Typography sx={{marginTop: 0.5}}>Name</Typography>
-                        <TextField name="name" value={formData.name || ""} onChange={handleChange} fullWidth
-                                   margin="dense"/>
+                        <Typography sx={{ marginTop: 0.5 }}>Name</Typography>
+                        <TextField
+                            name="name"
+                            value={formData.name || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validateName(formData.name)}
+                            helperText={validateName(formData.name)}
+                        />
                         <Typography>Surname</Typography>
-                        <TextField name="surname" value={formData.surname || ""} onChange={handleChange} fullWidth
-                                   margin="dense"/>
+                        <TextField
+                            name="surname"
+                            value={formData.surname || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validateSurname(formData.surname)}
+                            helperText={validateSurname(formData.surname)}
+                        />
                         <Typography>Email</Typography>
-                        <TextField name="email" value={formData.email || ""} onChange={handleChange} fullWidth
-                                   margin="dense"/>
+                        <TextField
+                            name="email"
+                            value={formData.email || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validateEmail(formData.email)}
+                            helperText={validateEmail(formData.email)}
+                        />
                         <Typography>Phone</Typography>
-                        <TextField name="phone" value={formData.phone || ""} onChange={handleChange} fullWidth
-                                   margin="dense"/>
+                        <TextField
+                            name="phone"
+                            value={formData.phone || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validatePhone(formData.phone)}
+                            helperText={validatePhone(formData.phone)}
+                        />
                         <Typography>Age</Typography>
-                        <TextField name="age" type="number" value={formData.age || ""} onChange={handleChange} fullWidth
-                                   margin="dense"/>
+                        <TextField
+                            name="age"
+                            type="number"
+                            value={formData.age || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validateAge(formData.age)}
+                            helperText={validateAge(formData.age)}
+                        />
+
                     </Box>
 
                     <Box flex={1}>
@@ -164,14 +213,28 @@ const EditModal = ({open, onClose, order, onSave, groups, setGroups}) => {
                                 <MenuItem value="Dubbing">Dubbing</MenuItem>
                             </Select>
                         </FormControl>
-
-                        <Typography sx={{marginTop: 2.9}}>Sum</Typography>
-                        <TextField name="sum" type="number" value={formData.sum || ""} onChange={handleChange} fullWidth
-                                   margin="dense"/>
+                        <Typography sx={{ marginTop: 2.9 }}>Sum</Typography>
+                        <TextField
+                            name="sum"
+                            type="number"
+                            value={formData.sum || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validateSum(formData.sum)}
+                            helperText={validateSum(formData.sum)}
+                        />
                         <Typography>Already Paid</Typography>
-                        <TextField name="alreadyPaid" type="number" value={formData.alreadyPaid || ""}
-                                   onChange={handleChange} fullWidth margin="dense"/>
-
+                        <TextField
+                            name="already_paid"
+                            type="number"
+                            value={formData.already_paid || ""}
+                            onChange={handleChange}
+                            fullWidth
+                            margin="dense"
+                            error={!!validateAlreadyPaid(formData.already_paid)}
+                            helperText={validateAlreadyPaid(formData.already_paid)}
+                        />
                         <Typography>Course</Typography>
                         <FormControl fullWidth margin="dense">
                             <Select name="course" value={formData.course || ""} onChange={handleChange}>
@@ -209,7 +272,7 @@ const EditModal = ({open, onClose, order, onSave, groups, setGroups}) => {
                     <Button variant="outlined" onClick={onClose}>
                         Close
                     </Button>
-                    <Button variant="contained" onClick={() => onSave(formData)}>
+                    <Button variant="contained" onClick={() => onSave(formData)} disabled={hasErrors}>
                         Submit
                     </Button>
                 </Box>

@@ -2,7 +2,7 @@ import {useAuth} from "../context/AuthContext";
 import {useNavigate} from "react-router-dom";
 import {Box, Typography} from "@mui/material";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faUserCog, faSignOutAlt} from "@fortawesome/free-solid-svg-icons";
+import {faUserCog, faSignOutAlt, faArrowLeft} from "@fortawesome/free-solid-svg-icons";
 import {authService} from "../services/authService";
 
 
@@ -17,6 +17,8 @@ const Header = () => {
         setIsAuthenticated(false);
         navigate("/login", {replace: true});
     };
+
+    const isAdminPage = window.location.pathname === "/admin";
 
     return (
         <Box sx={{
@@ -39,9 +41,13 @@ const Header = () => {
                             border: "none",
                             cursor: "pointer"
                         }}
-                        onClick={() => navigate("/admin")}
+                        onClick={() => navigate(isAdminPage ? "/orders" : "/admin")}
                     >
-                        <FontAwesomeIcon icon={faUserCog} color="white" size="2x"/>
+                        <FontAwesomeIcon
+                            icon={isAdminPage ? faArrowLeft : faUserCog}
+                            color="white"
+                            size="2x"
+                        />
                     </button>
                 )}
                 <button

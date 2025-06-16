@@ -13,16 +13,13 @@ import {EditModal} from "./EditModal";
 import {commentService} from "../services/commentService";
 import {orderService} from "../services/orderService";
 
-const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
+const OrderRow = ({order, onUpdateOrder, groups, setGroups, isExpanded, onToggle}) => {
     const {currentUser} = useContext(AuthContext);
-    const [isExpanded, setIsExpanded] = useState(false);
     const [comment, setComment] = useState("");
     const [comments, setComments] = useState(order.comments || []);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedId, setSelectedId] = useState(null);
 
     const canEdit =
-        currentUser?.role === "admin" ||
         !order.manager_id ||
         order.manager_id === currentUser?.id;
 
@@ -30,12 +27,6 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
     useEffect(() => {
         setComments(order.comments || []);
     }, [order]);
-
-    const handleExpand = () => {
-        if (!canEdit) return;
-        setIsExpanded(!isExpanded);
-        setSelectedId(order.id === selectedId ? null : order.id);
-    };
 
     const handleSubmitComment = async () => {
         if (!comment.trim()) return;
@@ -73,10 +64,10 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
     return (
         <>
             <TableRow
-                onClick={handleExpand}
+                onClick={canEdit ? onToggle : undefined}
                 sx={{
                     cursor: "pointer",
-                    backgroundColor: selectedId === order.id ? "lightblue" : "inherit",
+                    backgroundColor: isExpanded ? "lightblue" : "inherit",
                     "&:hover": {backgroundColor: "#dceefd"},
                 }}
             >
@@ -91,7 +82,7 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
                 <TableCell>{order.course_type}</TableCell>
                 <TableCell>{order.status || "null"}</TableCell>
                 <TableCell>{order.sum}</TableCell>
-                <TableCell>{order.alreadyPaid}</TableCell>
+                <TableCell>{order.already_paid}</TableCell>
                 <TableCell>{order.group}</TableCell>
                 <TableCell sx={{fontFamily: "monospace"}}>
                     {(() => {
@@ -143,7 +134,7 @@ const OrderRow = ({order, onUpdateOrder, groups, setGroups}) => {
                                                     <Typography variant="body2" sx={{marginLeft: 2}}>
                                                         <strong>{c.author_name}</strong>: {new Date(c.created_at).toLocaleString()}
                                                     </Typography>
-                                                    {(currentUser?.id === c.author_id || currentUser?.role === "admin") && (
+                                                    {currentUser?.id === c.author_id && (
                                                         <Button
                                                             variant="text"
                                                             color="error"

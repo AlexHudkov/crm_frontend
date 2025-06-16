@@ -177,7 +177,12 @@ const AdminPage = () => {
                         }}
                     >
                         {/* Info */}
-                        <Box sx={{minWidth: "200px"}}>
+                        <Box sx={{
+                            flex: "1 1 30%",
+                            minWidth: "200px",
+                            maxWidth: "350px",
+                            wordBreak: "break-word"
+                        }}>
                             <Typography><strong>id:</strong> {manager.id}</Typography>
                             <Typography><strong>email:</strong> {manager.email}</Typography>
                             <Typography><strong>name:</strong> {manager.name}</Typography>
@@ -196,13 +201,25 @@ const AdminPage = () => {
                         </Box>
 
                         {/* Stats */}
-                        <Box sx={{minWidth: "120px"}}>
+                        <Box sx={{
+                            flex: "0 0 160px",
+                            minWidth: "160px"
+                        }}>
                             <Typography><strong>total:</strong> {manager.total_orders}</Typography>
                             <Typography><strong>in work:</strong> {manager.in_work_orders}</Typography>
+                            <Typography><strong>aggre:</strong> {manager.aggre_orders}</Typography>
+                            <Typography><strong>disaggre:</strong> {manager.disaggre_orders}</Typography>
+                            <Typography><strong>dubbing:</strong> {manager.dubbing_orders}</Typography>
                         </Box>
 
                         {/* Buttons */}
-                        <Box sx={{display: "flex", flexDirection: "column", gap: 1}}>
+                        <Box sx={{
+                            flex: "0 0 160px",
+                            minWidth: "200px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1
+                        }}>
                             {/* Якщо немає паролю */}
                             {!manager.has_password && (
                                 <>

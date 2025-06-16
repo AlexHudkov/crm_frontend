@@ -24,6 +24,22 @@ const FilterPanel = ({onFilterChange, groups}) => {
     const debouncedFilterChangeRef = useRef();
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const newFilters = {};
+
+        for (const [key, value] of params.entries()) {
+            if (key === "only_my_applications") {
+                newFilters[key] = value === "true";
+            } else {
+                newFilters[key] = value;
+            }
+        }
+
+        setFilters((prev) => ({ ...prev, ...newFilters }));
+        prevFilters.current = { ...filters, ...newFilters };
+    }, []);
+
+    useEffect(() => {
         debouncedFilterChangeRef.current = debounce((newFilters) => {
             if (isEqual(newFilters, prevFilters.current)) return;
             prevFilters.current = newFilters;

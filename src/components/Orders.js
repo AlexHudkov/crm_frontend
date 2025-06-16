@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {
     Table,
     TableBody,
@@ -11,6 +11,7 @@ import {
 import {OrderRow} from "./OrderRow";
 
 const Orders = ({orders, handleSorting, groups, setGroups, onUpdateOrder}) => {
+    const [expandedOrderId, setExpandedOrderId] = useState(null);
 
     return (
         <TableContainer component={Paper}>
@@ -34,7 +35,7 @@ const Orders = ({orders, handleSorting, groups, setGroups, onUpdateOrder}) => {
                         </TableCell>
                         <TableCell onClick={() => handleSorting("status")}>Status</TableCell>
                         <TableCell onClick={() => handleSorting("sum")}>Sum</TableCell>
-                        <TableCell onClick={() => handleSorting("alreadyPaid")}>
+                        <TableCell onClick={() => handleSorting("already_paid")}>
                             Already paid
                         </TableCell>
                         <TableCell onClick={() => handleSorting("group")}>Group</TableCell>
@@ -49,7 +50,9 @@ const Orders = ({orders, handleSorting, groups, setGroups, onUpdateOrder}) => {
                 <TableBody>
                     {orders.map((order) => (
                         <OrderRow key={order.id} order={order} onUpdateOrder={onUpdateOrder} groups={groups}
-                                  setGroups={setGroups}/>
+                                  setGroups={setGroups} isExpanded={expandedOrderId === order.id}
+                                  onToggle={() =>
+                                      setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}/>
                     ))}
                 </TableBody>
             </Table>

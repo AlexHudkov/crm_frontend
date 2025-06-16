@@ -2,11 +2,11 @@ import {Box, Typography} from "@mui/material";
 
 const OrderStatistics = ({stats}) => {
     const defaultStats = {
-        "Agree": 0,
         "In Work": 0,
-        "Disagree": 0,
-        "Dubbing": 0,
         "New": 0,
+        "Agree": 0,
+        "Disaggre": 0,
+        "Dubbing": 0,
     };
 
     let total = 0;
